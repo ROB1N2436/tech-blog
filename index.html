@@ -367,6 +367,9 @@
             border-radius: 16px;
             overflow: hidden;
             animation: adminSlideIn 0.3s ease;
+            max-height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
         }
 
         @keyframes adminSlideIn { from { opacity: 0; transform: scale(0.97) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
@@ -438,7 +441,7 @@
         .admin-tab:hover { color: var(--text-secondary); }
         .admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-        .admin-body { padding: 2.5rem; }
+        .admin-body { padding: 2.5rem; overflow-y: auto; flex: 1; }
 
         .admin-tab-content { display: none; }
         .admin-tab-content.active { display: block; }
@@ -492,6 +495,7 @@
             border-radius: 10px;
             overflow: hidden;
             min-height: 420px;
+            max-height: 55vh;
         }
 
         .md-editor.hidden { display: none; }
@@ -537,7 +541,7 @@
             line-height: 1.8;
             resize: none;
             outline: none;
-            min-height: 380px;
+            overflow-y: auto;
         }
 
         .md-textarea::placeholder { color: var(--text-muted); }
@@ -680,6 +684,27 @@
 
         @keyframes toastIn { from { opacity: 0; transform: translateY(16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
+        /* Drag & Drop image */
+        .md-editor.drag-over {
+            outline: 2px dashed var(--accent);
+            outline-offset: -2px;
+        }
+        .md-editor.drag-over::after {
+            content: '松开即可插入图片';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 1rem 2rem;
+            background: rgba(0,255,136,0.15);
+            color: var(--accent);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .md-editor { position: relative; }
+
         /* Responsive */
         @media (max-width: 768px) {
             header { padding: 3rem 5% 2rem; }
@@ -809,6 +834,8 @@
                                 <button type="button" class="md-toolbar-btn" data-action="ul" title="无序列表">•</button>
                                 <button type="button" class="md-toolbar-btn" data-action="ol" title="有序列表">1.</button>
                                 <button type="button" class="md-toolbar-btn" data-action="link" title="链接">🔗</button>
+                                <button type="button" class="md-toolbar-btn" data-action="image" title="插入图片">🖼️</button>
+                                <input type="file" id="imageInput" accept="image/*" style="display:none">
                                 <button type="button" class="md-toolbar-btn" data-action="hr" title="分隔线">—</button>
                             </div>
                             <div class="md-editor" id="mdEditor">
@@ -892,6 +919,8 @@
                                 <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="ul">•</button>
                                 <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="ol">1.</button>
                                 <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="link">🔗</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="image">🖼️</button>
+                                <input type="file" id="editImageInput" accept="image/*" style="display:none">
                                 <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="hr">—</button>
                             </div>
                             <div class="md-editor" id="editMdEditor">
@@ -1094,10 +1123,83 @@
             ta.dispatchEvent(new Event('input'));
         }
 
+        // ─── Image Upload ───
+        function insertImage(ta, file) {
+            if (!file || !file.type.startsWith('image/')) {
+                showToast('请选择图片文件', 'error');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('图片不能超过 5MB', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64 = e.target.result;
+                const name = file.name.replace(/\.[^.]+$/, '');
+                const markdown = `![${name}](${base64})\n`;
+                const pos = ta.selectionStart;
+                ta.value = ta.value.substring(0, pos) + markdown + ta.value.substring(pos);
+                const newPos = pos + markdown.length;
+                ta.setSelectionRange(newPos, newPos);
+                ta.focus();
+                ta.dispatchEvent(new Event('input'));
+                showToast('图片已插入！');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // File input for write tab
+        const writeImageInput = document.getElementById('imageInput');
+        writeImageInput.addEventListener('change', e => {
+            if (e.target.files[0]) {
+                insertImage(formContent, e.target.files[0]);
+                e.target.value = '';
+            }
+        });
+
+        // File input for edit tab
+        const editImageInput = document.getElementById('editImageInput');
+        editImageInput.addEventListener('change', e => {
+            if (e.target.files[0]) {
+                insertImage(editContent, e.target.files[0]);
+                e.target.value = '';
+            }
+        });
+
+        // Drag & Drop for write editor
+        const writeEditor = document.getElementById('mdEditor');
+        writeEditor.addEventListener('dragover', e => { e.preventDefault(); writeEditor.classList.add('drag-over'); });
+        writeEditor.addEventListener('dragleave', () => writeEditor.classList.remove('drag-over'));
+        writeEditor.addEventListener('drop', e => {
+            e.preventDefault();
+            writeEditor.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) insertImage(formContent, file);
+        });
+
+        // Drag & Drop for edit editor
+        const editEditor = document.getElementById('editMdEditor');
+        editEditor.addEventListener('dragover', e => { e.preventDefault(); editEditor.classList.add('drag-over'); });
+        editEditor.addEventListener('dragleave', () => editEditor.classList.remove('drag-over'));
+        editEditor.addEventListener('drop', e => {
+            e.preventDefault();
+            editEditor.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) insertImage(editContent, file);
+        });
+
+        // ─── Toolbar Button Clicks ───
         document.querySelectorAll('.md-toolbar-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const action = btn.dataset.action;
-                const ta = action === 'write' ? formContent : editContent;
+                // Determine target textarea
+                let ta;
+                if (btn.dataset.target === 'editContent') {
+                    ta = editContent;
+                } else {
+                    ta = formContent;
+                }
                 switch (action) {
                     case 'bold':      insertMd(ta, '**', '**', '粗体文字'); break;
                     case 'italic':     insertMd(ta, '*', '*', '斜体文字'); break;
@@ -1109,6 +1211,14 @@
                     case 'ul':         insertMd(ta, '\n- ', '\n', '列表项'); break;
                     case 'ol':         insertMd(ta, '\n1. ', '\n', '列表项'); break;
                     case 'link':       insertMd(ta, '[', '](https://)', '链接文字'); break;
+                    case 'image':
+                        // Trigger the file input for the correct tab
+                        if (btn.dataset.target === 'editContent') {
+                            editImageInput.click();
+                        } else {
+                            writeImageInput.click();
+                        }
+                        break;
                     case 'hr':         insertMd(ta, '\n---\n', ''); break;
                 }
             });
