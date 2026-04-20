@@ -506,6 +506,7 @@
             flex-direction: column;
             background: var(--bg-input);
             overflow: hidden;
+            min-height: 0;
         }
 
         .md-pane-header {
@@ -544,6 +545,7 @@
             resize: none;
             outline: none;
             overflow-y: auto;
+            min-height: 0;
         }
 
         .md-textarea::placeholder { color: var(--text-muted); }
@@ -830,8 +832,13 @@
                             <div class="md-toolbar">
                                 <button type="button" class="md-toolbar-btn" data-action="bold" title="粗体 **text**">B</button>
                                 <button type="button" class="md-toolbar-btn" data-action="italic" title="斜体 *text*"><i>I</i></button>
+                                <div class="md-toolbar-sep"></div>
+                                <button type="button" class="md-toolbar-btn" data-action="h1" title="一级标题">H1</button>
                                 <button type="button" class="md-toolbar-btn" data-action="h2" title="二级标题">H2</button>
                                 <button type="button" class="md-toolbar-btn" data-action="h3" title="三级标题">H3</button>
+                                <button type="button" class="md-toolbar-btn" data-action="h4" title="四级标题">H4</button>
+                                <button type="button" class="md-toolbar-btn" data-action="h5" title="五级标题">H5</button>
+                                <button type="button" class="md-toolbar-btn" data-action="h6" title="六级标题">H6</button>
                                 <div class="md-toolbar-sep"></div>
                                 <button type="button" class="md-toolbar-btn" data-action="quote" title="引用">&ldquo;</button>
                                 <button type="button" class="md-toolbar-btn" data-action="code" title="行内代码">`</button>
@@ -915,8 +922,13 @@
                             <div class="md-toolbar" id="editMdToolbar">
                                 <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="bold" title="粗体">B</button>
                                 <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="italic"><i>I</i></button>
-                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h2">H2</button>
-                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h3">H3</button>
+                                <div class="md-toolbar-sep"></div>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h1" title="一级标题">H1</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h2" title="二级标题">H2</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h3" title="三级标题">H3</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h4" title="四级标题">H4</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h5" title="五级标题">H5</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h6" title="六级标题">H6</button>
                                 <div class="md-toolbar-sep"></div>
                                 <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="quote">&ldquo;</button>
                                 <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="code">`</button>
@@ -1209,8 +1221,12 @@
                 switch (action) {
                     case 'bold':      insertMd(ta, '**', '**', '粗体文字'); break;
                     case 'italic':     insertMd(ta, '*', '*', '斜体文字'); break;
+                    case 'h1':         insertMd(ta, '\n# ', '\n', '一级标题'); break;
                     case 'h2':         insertMd(ta, '\n## ', '\n', '二级标题'); break;
                     case 'h3':         insertMd(ta, '\n### ', '\n', '三级标题'); break;
+                    case 'h4':         insertMd(ta, '\n#### ', '\n', '四级标题'); break;
+                    case 'h5':         insertMd(ta, '\n##### ', '\n', '五级标题'); break;
+                    case 'h6':         insertMd(ta, '\n###### ', '\n', '六级标题'); break;
                     case 'quote':      insertMd(ta, '\n> ', '\n', '引用内容'); break;
                     case 'code':       insertMd(ta, '`', '`', '代码'); break;
                     case 'codeblock':  insertMd(ta, '\n```\n', '\n```\n', '代码块'); break;
@@ -1229,6 +1245,92 @@
                 }
             });
         });
+
+        // ─── Paste from Feishu/Word/HTML → Markdown ───
+        function htmlToMd(html) {
+            // Remove unnecessary tags
+            html = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+            html = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+            
+            // Headings (h1-h6)
+            html = html.replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '\n# $1\n');
+            html = html.replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '\n## $1\n');
+            html = html.replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '\n### $1\n');
+            html = html.replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, '\n#### $1\n');
+            html = html.replace(/<h5[^>]*>([\s\S]*?)<\/h5>/gi, '\n##### $1\n');
+            html = html.replace(/<h6[^>]*>([\s\S]*?)<\/h6>/gi, '\n###### $1\n');
+            
+            // Bold & Italic
+            html = html.replace(/<(strong|b)[^>]*>([\s\S]*?)<\/(strong|b)>/gi, '**$2**');
+            html = html.replace(/<(em|i)[^>]*>([\s\S]*?)<\/(em|i)>/gi, '*$2*');
+            
+            // Links
+            html = html.replace(/<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, '[$2]($1)');
+            
+            // Images
+            html = html.replace(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*\/?>/gi, '![$2]($1)');
+            html = html.replace(/<img[^>]*src="([^"]*)"[^>]*\/?>/gi, '![]($1)');
+            
+            // Code blocks
+            html = html.replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, '\n```\n$1\n```\n');
+            html = html.replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, '`$1`');
+            
+            // Blockquotes
+            html = html.replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi, function(m, p1) {
+                return '\n> ' + p1.replace(/<br\s*\/?>/gi, '\n> ').replace(/<[^>]+>/g, '').trim() + '\n';
+            });
+            
+            // Lists
+            html = html.replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, '$1');
+            html = html.replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, '$1');
+            html = html.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, '- $1\n');
+            
+            // Paragraphs and line breaks
+            html = html.replace(/<br\s*\/?>/gi, '\n');
+            html = html.replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '$1\n\n');
+            html = html.replace(/<div[^>]*>([\s\S]*?)<\/div>/gi, '$1\n');
+            
+            // Remove remaining tags
+            html = html.replace(/<[^>]+>/g, '');
+            
+            // Decode HTML entities
+            html = html.replace(/&nbsp;/g, ' ');
+            html = html.replace(/&amp;/g, '&');
+            html = html.replace(/&lt;/g, '<');
+            html = html.replace(/&gt;/g, '>');
+            html = html.replace(/&quot;/g, '"');
+            
+            // Clean up extra whitespace
+            html = html.replace(/\n{3,}/g, '\n\n');
+            html = html.trim();
+            
+            return html;
+        }
+
+        function handlePaste(e, textarea) {
+            const clipboardData = e.clipboardData || window.clipboardData;
+            const items = clipboardData.items;
+            
+            // Check for HTML content (from Feishu, Word, etc.)
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type === 'text/html') {
+                    e.preventDefault();
+                    items[i].getAsString(html => {
+                        const md = htmlToMd(html);
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        textarea.value = textarea.value.substring(0, start) + md + textarea.value.substring(end);
+                        textarea.setSelectionRange(start + md.length, start + md.length);
+                        textarea.dispatchEvent(new Event('input'));
+                        showToast('已转换为 Markdown 格式');
+                    });
+                    return;
+                }
+            }
+        }
+
+        formContent.addEventListener('paste', e => handlePaste(e, formContent));
+        editContent.addEventListener('paste', e => handlePaste(e, editContent));
 
         // ─── Render Admin List ───
         function renderAdminList() {
