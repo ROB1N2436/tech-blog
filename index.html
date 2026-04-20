@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Notes | 科技随想</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0D0D0D;
+            --bg-secondary: #141414;
+            --bg-card: #1A1A1A;
+            --bg-hover: #222222;
+            --bg-input: #111111;
+            --text-primary: #E8E8E8;
+            --text-secondary: #888888;
+            --text-muted: #444444;
+            --accent: #00FF88;
+            --accent-dim: rgba(0,255,136,0.12);
+            --accent-glow: rgba(0,255,136,0.35);
+            --border: #2A2A2A;
+            --border-focus: #3A3A3A;
+            --danger: #FF4757;
+            --danger-dim: rgba(255,71,87,0.12);
+            --warning: #FFD32A;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Space Grotesk', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 25% 0%, rgba(0,255,136,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 90%, rgba(100,60,200,0.06) 0%, transparent 45%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── Header ─── */
+        header {
+            position: relative;
+            z-index: 1;
+            padding: 5rem 6% 2.5rem;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .site-title {
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            background: linear-gradient(120deg, var(--text-primary) 30%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+        }
+
+        .site-subtitle {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .site-subtitle::before { content: '// '; color: var(--accent); opacity: 0.8; }
+
+        /* ─── Nav ─── */
+        nav {
+            position: relative;
+            z-index: 1;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 6%;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        nav ul { display: flex; gap: 2.5rem; list-style: none; }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 1.2rem 0;
+            border-bottom: 2px solid transparent;
+            transition: color 0.25s, border-color 0.25s;
+            cursor: pointer;
+        }
+
+        nav a:hover, nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .nav-admin-btn {
+            color: var(--text-muted) !important;
+            font-size: 0.75rem !important;
+            border: 1px solid var(--border) !important;
+            border-bottom: none !important;
+            padding: 0.4rem 0.9rem !important;
+            border-radius: 6px 6px 0 0;
+            letter-spacing: 0.08em !important;
+            transition: color 0.25s, border-color 0.25s, background 0.25s !important;
+            margin-left: 2rem;
+        }
+
+        .nav-admin-btn:hover { color: var(--accent) !important; border-color: var(--accent) !important; background: var(--accent-dim) !important; }
+
+        /* ─── Main ─── */
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 3.5rem 6% 5rem;
+        }
+
+        .section-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+        .section-label.hidden { display: none; }
+
+        /* ─── Empty State ─── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8rem 2rem;
+            text-align: center;
+            animation: fadeUp 0.6s ease;
+        }
+
+        .empty-state-icon { font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.3; filter: grayscale(1); }
+        .empty-state h2 { font-size: 1.4rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.75rem; }
+        .empty-state p { color: var(--text-muted); font-size: 0.9rem; max-width: 360px; line-height: 1.8; }
+        .empty-state .hint { margin-top: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); opacity: 0.7; }
+
+        /* ─── Article List ─── */
+        .article-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .article-list.hidden { display: none; }
+
+        .article-item {
+            padding: 2rem 2.5rem;
+            background: var(--bg-card);
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .article-item:hover { background: var(--bg-hover); }
+
+        .article-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: var(--accent);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+            border-radius: 0 2px 2px 0;
+        }
+
+        .article-item:hover::before { transform: scaleY(1); }
+
+        .article-item .article-meta { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 0.85rem; }
+        .article-date { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
+        .article-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+        .tag {
+            background: var(--accent-dim);
+            color: var(--accent);
+            padding: 0.2rem 0.65rem;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .article-title { font-size: clamp(1.15rem, 2.5vw, 1.4rem); font-weight: 600; line-height: 1.3; margin-bottom: 0.6rem; transition: color 0.2s; }
+        .article-item:hover .article-title { color: var(--accent); }
+        .article-excerpt { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.8; max-width: 700px; }
+
+        /* ─── Article Detail ─── */
+        .article-detail { display: none; animation: slideIn 0.4s ease; }
+        .article-detail.active { display: block; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 2.5rem;
+            transition: color 0.2s, transform 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .back-btn:hover { color: var(--accent); transform: translateX(-4px); }
+
+        .article-header { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+        .article-header .article-meta { margin-bottom: 1.5rem; }
+        .article-header h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; line-height: 1.15; letter-spacing: -0.025em; }
+
+        .article-content {
+            font-size: 1.02rem;
+            line-height: 2;
+            color: var(--text-primary);
+            max-width: 800px;
+        }
+
+        .article-content h1, .article-content h2, .article-content h3,
+        .article-content h4, .article-content h5, .article-content h6 {
+            font-weight: 600;
+            margin: 2.5rem 0 1rem;
+            line-height: 1.3;
+        }
+
+        .article-content h1 { font-size: 1.8rem; }
+        .article-content h2 { font-size: 1.4rem; }
+        .article-content h2::before { content: '# '; color: var(--accent); }
+        .article-content h3 { font-size: 1.15rem; color: var(--text-secondary); }
+        .article-content h3::before { content: '## '; color: var(--accent); opacity: 0.5; }
+
+        .article-content p { margin-bottom: 1.5rem; }
+        .article-content ul, .article-content ol { margin: 1.1rem 0 1.5rem 1.5rem; }
+        .article-content li { margin-bottom: 0.5rem; }
+        .article-content li::marker { color: var(--accent); }
+
+        .article-content blockquote {
+            border-left: 2px solid var(--accent);
+            padding: 0.9rem 0 0.9rem 1.5rem;
+            margin: 2rem 0;
+            color: var(--text-secondary);
+            font-style: italic;
+            background: var(--bg-card);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .article-content code {
+            background: var(--bg-card);
+            color: var(--accent);
+            padding: 0.18rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85em;
+            border: 1px solid var(--border);
+        }
+
+        .article-content pre {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .article-content pre code { background: none; border: none; padding: 0; color: var(--text-primary); font-size: 0.88rem; }
+        .article-content strong { color: var(--text-primary); font-weight: 600; }
+        .article-content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(0,255,136,0.3); }
+        .article-content a:hover { border-bottom-color: var(--accent); }
+        .article-content hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+        .article-content img { max-width: 100%; border-radius: 8px; margin: 1rem 0; }
+        .article-content table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+        .article-content th, .article-content td { border: 1px solid var(--border); padding: 0.7rem 1rem; text-align: left; }
+        .article-content th { background: var(--bg-card); color: var(--accent); }
+
+        /* ─── Footer ─── */
+        footer {
+            position: relative;
+            z-index: 1;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 3rem 6%;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .footer-text { color: var(--text-muted); font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; }
+        .footer-links { display: flex; gap: 1.5rem; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.78rem; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--accent); }
+
+        /* ═══════════════════════════════════════════
+           ADMIN PANEL
+        ═══════════════════════════════════════════ */
+        .admin-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            overflow-y: auto;
+        }
+
+        .admin-overlay.active { display: flex; }
+
+        .admin-panel {
+            width: 100%;
+            max-width: 1100px;
+            margin: 2rem auto;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: adminSlideIn 0.3s ease;
+        }
+
+        @keyframes adminSlideIn { from { opacity: 0; transform: scale(0.97) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        .admin-header {
+            padding: 1.8rem 2.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card);
+        }
+
+        .admin-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .admin-header h2::before {
+            content: '';
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .admin-close {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .admin-close:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-dim); }
+
+        .admin-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            padding: 0 2.5rem;
+            background: var(--bg-card);
+            overflow-x: auto;
+        }
+
+        .admin-tab {
+            padding: 1rem 1.5rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border: none;
+            background: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        .admin-tab:hover { color: var(--text-secondary); }
+        .admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        .admin-body { padding: 2.5rem; }
+
+        .admin-tab-content { display: none; }
+        .admin-tab-content.active { display: block; }
+
+        /* Form styles */
+        .form-group { margin-bottom: 1.5rem; }
+
+        .form-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.6rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.85rem 1.1rem;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+        .form-input::placeholder { color: var(--text-muted); }
+
+        .form-hint {
+            margin-top: 0.5rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+
+        /* ─── Markdown Editor ─── */
+        .md-editor {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            min-height: 420px;
+        }
+
+        .md-editor.hidden { display: none; }
+
+        .md-pane {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-input);
+        }
+
+        .md-pane-header {
+            padding: 0.6rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .md-pane-header .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .md-pane-header.write .dot { background: var(--accent); box-shadow: 0 0 4px var(--accent); }
+        .md-pane-header.preview .dot { background: var(--warning); box-shadow: 0 0 4px var(--warning); }
+
+        .md-textarea {
+            flex: 1;
+            width: 100%;
+            background: var(--bg-input);
+            border: none;
+            padding: 1.2rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            line-height: 1.8;
+            resize: none;
+            outline: none;
+            min-height: 380px;
+        }
+
+        .md-textarea::placeholder { color: var(--text-muted); }
+
+        .md-preview {
+            flex: 1;
+            padding: 1.2rem;
+            overflow-y: auto;
+            background: var(--bg-primary);
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        /* Markdown preview styles (matches article-content) */
+        .md-preview h1, .md-preview h2, .md-preview h3,
+        .md-preview h4, .md-preview h5, .md-preview h6 {
+            font-weight: 600; margin: 2rem 0 0.8rem; line-height: 1.3;
+        }
+        .md-preview h1 { font-size: 1.6rem; }
+        .md-preview h2 { font-size: 1.3rem; }
+        .md-preview h2::before { content: '# '; color: var(--accent); }
+        .md-preview h3 { font-size: 1.1rem; color: var(--text-secondary); }
+        .md-preview p { margin-bottom: 1.2rem; color: var(--text-secondary); }
+        .md-preview strong { color: var(--text-primary); }
+        .md-preview code { background: var(--bg-card); color: var(--accent); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85em; border: 1px solid var(--border); }
+        .md-preview pre { background: var(--bg-card); padding: 1.2rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border: 1px solid var(--border); }
+        .md-preview pre code { background: none; border: none; padding: 0; color: var(--text-primary); }
+        .md-preview blockquote { border-left: 2px solid var(--accent); padding: 0.7rem 0 0.7rem 1.2rem; margin: 1.5rem 0; color: var(--text-muted); font-style: italic; }
+        .md-preview ul, .md-preview ol { margin: 1rem 0 1.2rem 1.3rem; }
+        .md-preview li { margin-bottom: 0.4rem; color: var(--text-secondary); }
+        .md-preview li::marker { color: var(--accent); }
+        .md-preview hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+        .md-preview a { color: var(--accent); text-decoration: none; }
+        .md-preview table { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: 0.9rem; }
+        .md-preview th, .md-preview td { border: 1px solid var(--border); padding: 0.5rem 0.8rem; text-align: left; }
+        .md-preview th { background: var(--bg-card); color: var(--accent); }
+        .md-preview img { max-width: 100%; border-radius: 6px; }
+
+        /* Markdown toolbar */
+        .md-toolbar {
+            display: flex;
+            gap: 0.35rem;
+            padding: 0.6rem 1rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .md-toolbar-btn {
+            background: none;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 0.35rem 0.6rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: all 0.15s;
+            line-height: 1;
+        }
+
+        .md-toolbar-btn:hover { border-color: var(--border); color: var(--accent); background: var(--accent-dim); }
+        .md-toolbar-sep { width: 1px; background: var(--border); margin: 0.2rem 0.3rem; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .btn-primary { background: var(--accent); color: #0D0D0D; border-color: var(--accent); }
+        .btn-primary:hover { background: #00e07a; box-shadow: 0 0 20px var(--accent-glow); }
+
+        .btn-secondary { background: transparent; color: var(--text-secondary); border-color: var(--border); }
+        .btn-secondary:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+        .btn-danger { background: var(--danger-dim); color: var(--danger); border-color: rgba(255,71,87,0.3); }
+        .btn-danger:hover { background: rgba(255,71,87,0.2); }
+
+        .form-actions { display: flex; gap: 0.75rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+        /* Admin article list */
+        .admin-article-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .admin-article-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.2rem 1.5rem;
+            background: var(--bg-card);
+            transition: background 0.2s;
+        }
+
+        .admin-article-row:hover { background: var(--bg-hover); }
+        .admin-article-info { flex: 1; min-width: 0; }
+        .admin-article-title { font-size: 0.95rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-article-meta { font-size: 0.72rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-top: 0.25rem; }
+        .admin-article-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+        .admin-article-actions .btn { padding: 0.45rem 0.9rem; font-size: 0.75rem; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 2000;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            box-shadow: var(--shadow);
+            animation: toastIn 0.3s ease;
+            display: none;
+        }
+
+        .toast.success { border-color: var(--accent); }
+        .toast.error { border-color: var(--danger); }
+        .toast.show { display: block; }
+
+        @keyframes toastIn { from { opacity: 0; transform: translateY(16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header { padding: 3rem 5% 2rem; }
+            nav { padding: 0 5%; }
+            nav ul { gap: 1.5rem; }
+            .nav-admin-btn { margin-left: 1rem; }
+            main { padding: 2.5rem 5%; }
+            .article-item { padding: 1.5rem; }
+            .admin-panel { margin: 1rem; border-radius: 12px; }
+            .admin-header, .admin-body { padding: 1.2rem 1.5rem; }
+            .form-row { grid-template-columns: 1fr; }
+            .md-editor { grid-template-columns: 1fr; min-height: 300px; }
+            .md-preview { display: none; }
+            .footer-content { flex-direction: column; text-align: center; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="site-title">Tech Notes</h1>
+        <p class="site-subtitle">关于效率、工具与数字生活的随想</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#" class="active" data-view="list">文章</a></li>
+            <li><a href="#" data-view="about">关于</a></li>
+        </ul>
+        <a class="nav-admin-btn" id="adminBtn">✦ 发布管理</a>
+    </nav>
+
+    <main>
+        <div class="section-label" id="sectionLabel">最近文章</div>
+        <div class="article-list" id="articleList"></div>
+        <div class="empty-state" id="emptyState">
+            <div class="empty-state-icon">📝</div>
+            <h2>还没有文章</h2>
+            <p>按 <kbd style="background:var(--bg-card);padding:0.2rem 0.5rem;border-radius:4px;border:1px solid var(--border);font-family:JetBrains Mono,monospace;font-size:0.8em">Ctrl+Shift+A</kbd> 或点击右上角「发布管理」开始写作</p>
+            <div class="hint">// 你的想法，值得被记录</div>
+        </div>
+        <article class="article-detail" id="articleDetail">
+            <button class="back-btn" id="backBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                返回列表
+            </button>
+            <div id="detailContent"></div>
+        </article>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <span class="footer-text">© <span id="footerYear"></span> Tech Notes</span>
+            <div class="footer-links">
+                <a href="#" onclick="return false">RSS</a>
+                <a href="#" onclick="return false">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════
+         ADMIN OVERLAY
+    ═══════════════════════════════════════════ -->
+    <div class="admin-overlay" id="adminOverlay">
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h2>发布管理</h2>
+                <button class="admin-close" id="adminClose">✕</button>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="admin-tab active" data-tab="manage">文章管理</button>
+                <button class="admin-tab" data-tab="write">写文章</button>
+                <button class="admin-tab" data-tab="edit" id="editTab" style="display:none">编辑文章</button>
+            </div>
+
+            <div class="admin-body">
+                <!-- Manage -->
+                <div class="admin-tab-content active" id="tab-manage">
+                    <div class="admin-article-list" id="adminArticleList"></div>
+                </div>
+
+                <!-- Write -->
+                <div class="admin-tab-content" id="tab-write">
+                    <form id="articleForm">
+                        <input type="hidden" id="editId" value="">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">标题</label>
+                                <input class="form-input" id="formTitle" placeholder="文章标题" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">日期</label>
+                                <input class="form-input" id="formDate" type="date" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">标签（用逗号分隔）</label>
+                                <input class="form-input" id="formTags" placeholder="效率, 工具, AI">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">摘要</label>
+                                <input class="form-input" id="formExcerpt" placeholder="简短摘要，一句话描述">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">正文（Markdown 写作，左右分栏实时预览）</label>
+                            <!-- Markdown Toolbar -->
+                            <div class="md-toolbar">
+                                <button type="button" class="md-toolbar-btn" data-action="bold" title="粗体 **text**">B</button>
+                                <button type="button" class="md-toolbar-btn" data-action="italic" title="斜体 *text*"><i>I</i></button>
+                                <button type="button" class="md-toolbar-btn" data-action="h2" title="二级标题">H2</button>
+                                <button type="button" class="md-toolbar-btn" data-action="h3" title="三级标题">H3</button>
+                                <div class="md-toolbar-sep"></div>
+                                <button type="button" class="md-toolbar-btn" data-action="quote" title="引用">&ldquo;</button>
+                                <button type="button" class="md-toolbar-btn" data-action="code" title="行内代码">`</button>
+                                <button type="button" class="md-toolbar-btn" data-action="codeblock" title="代码块">```</button>
+                                <div class="md-toolbar-sep"></div>
+                                <button type="button" class="md-toolbar-btn" data-action="ul" title="无序列表">•</button>
+                                <button type="button" class="md-toolbar-btn" data-action="ol" title="有序列表">1.</button>
+                                <button type="button" class="md-toolbar-btn" data-action="link" title="链接">🔗</button>
+                                <button type="button" class="md-toolbar-btn" data-action="hr" title="分隔线">—</button>
+                            </div>
+                            <div class="md-editor" id="mdEditor">
+                                <div class="md-pane">
+                                    <div class="md-pane-header write">
+                                        <span class="dot"></span> Markdown
+                                    </div>
+                                    <textarea class="md-textarea" id="formContent" placeholder="开始写作吧...
+
+# 一级标题
+## 二级标题
+
+**粗体文本**
+
+> 引用块
+
+`行内代码`
+
+```
+代码块
+```
+
+- 列表项
+1. 有序列表
+
+[链接文字](https://example.com)
+
+---"></textarea>
+                                </div>
+                                <div class="md-pane">
+                                    <div class="md-pane-header preview">
+                                        <span class="dot"></span> 预览
+                                    </div>
+                                    <div class="md-preview" id="mdPreview"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="publishBtn">✓ 发布文章</button>
+                            <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display:none">取消编辑</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Edit -->
+                <div class="admin-tab-content" id="tab-edit">
+                    <form id="editForm">
+                        <input type="hidden" id="editArticleId" value="">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">标题</label>
+                                <input class="form-input" id="editTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">日期</label>
+                                <input class="form-input" id="editDate" type="date" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">标签（用逗号分隔）</label>
+                                <input class="form-input" id="editTags">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">摘要</label>
+                                <input class="form-input" id="editExcerpt">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">正文</label>
+                            <div class="md-toolbar" id="editMdToolbar">
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="bold" title="粗体">B</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="italic"><i>I</i></button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h2">H2</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="h3">H3</button>
+                                <div class="md-toolbar-sep"></div>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="quote">&ldquo;</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="code">`</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="codeblock">```</button>
+                                <div class="md-toolbar-sep"></div>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="ul">•</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="ol">1.</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="link">🔗</button>
+                                <button type="button" class="md-toolbar-btn" data-target="editContent" data-action="hr">—</button>
+                            </div>
+                            <div class="md-editor" id="editMdEditor">
+                                <div class="md-pane">
+                                    <div class="md-pane-header write"><span class="dot"></span> Markdown</div>
+                                    <textarea class="md-textarea" id="editContent" placeholder="写点什么..."></textarea>
+                                </div>
+                                <div class="md-pane">
+                                    <div class="md-pane-header preview"><span class="dot"></span> 预览</div>
+                                    <div class="md-preview" id="editMdPreview"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">✓ 保存更改</button>
+                            <button type="button" class="btn btn-secondary" id="cancelEdit2Btn">取消</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ─── Markdown Parser Config ───
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({ breaks: true, gfm: true });
+        }
+
+        function parseMd(text) {
+            if (typeof marked !== 'undefined') {
+                return marked.parse(text || '');
+            }
+            // Fallback: escape HTML
+            return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g,'<em>$1</em>')
+                .replace(/^# (.+)$/gm,'<h2>$1</h2>')
+                .replace(/^## (.+)$/gm,'<h3>$1</h3>')
+                .replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>')
+                .replace(/`([^`]+)`/g,'<code>$1</code>')
+                .replace(/\n/g,'<br>');
+        }
+
+        // ─── Storage ───
+        const STORAGE_KEY = 'techblog_articles';
+
+        function loadArticles() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+            catch { return {}; }
+        }
+
+        function saveArticles(articles) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
+        }
+
+        // ─── Toast ───
+        let toastTimer;
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast ' + type + ' show';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.className = 'toast', 3000);
+        }
+
+        // ─── Render Public List ───
+        function renderArticleList() {
+            const articles = loadArticles();
+            const ids = Object.keys(articles).map(Number).sort((a, b) => b - a);
+            const list = document.getElementById('articleList');
+            const empty = document.getElementById('emptyState');
+
+            if (ids.length === 0) {
+                list.classList.add('hidden');
+                empty.style.display = 'flex';
+                return;
+            }
+
+            empty.style.display = 'none';
+            list.classList.remove('hidden');
+            list.innerHTML = ids.map(id => {
+                const a = articles[id];
+                const tagsHtml = a.tags.map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+                return `<article class="article-item" data-id="${id}">
+                    <div class="article-meta">
+                        <span class="article-date">${escHtml(a.date)}</span>
+                        <div class="article-tags">${tagsHtml}</div>
+                    </div>
+                    <h2 class="article-title">${escHtml(a.title)}</h2>
+                    <p class="article-excerpt">${escHtml(a.excerpt || '')}</p>
+                </article>`;
+            }).join('');
+
+            list.querySelectorAll('.article-item').forEach(item => {
+                item.addEventListener('click', () => showArticle(item.dataset.id));
+            });
+        }
+
+        // ─── Show Article ───
+        function showArticle(id) {
+            const articles = loadArticles();
+            const a = articles[id];
+            if (!a) return;
+            const tagsHtml = a.tags.map(t => `<span class="tag">${escHtml(t)}</span>`).join('');
+            document.getElementById('detailContent').innerHTML = `
+                <header class="article-header">
+                    <div class="article-meta">
+                        <span class="article-date">${escHtml(a.date)}</span>
+                        <div class="article-tags">${tagsHtml}</div>
+                    </div>
+                    <h1>${escHtml(a.title)}</h1>
+                </header>
+                <div class="article-content">${parseMd(a.content)}</div>`;
+
+            document.getElementById('articleList').classList.add('hidden');
+            document.getElementById('sectionLabel').classList.add('hidden');
+            document.getElementById('articleDetail').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function showList() {
+            document.getElementById('articleList').classList.remove('hidden');
+            document.getElementById('sectionLabel').classList.remove('hidden');
+            document.getElementById('articleDetail').classList.remove('active');
+        }
+
+        // ─── Admin ───
+        const overlay = document.getElementById('adminOverlay');
+
+        function openAdmin() {
+            overlay.classList.add('active');
+            renderAdminList();
+            switchTab('manage');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAdmin() {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+            document.getElementById('articleForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.getElementById('editTab').style.display = 'none';
+            document.getElementById('mdPreview').innerHTML = '';
+        }
+
+        document.getElementById('adminBtn').addEventListener('click', openAdmin);
+        document.getElementById('adminClose').addEventListener('click', closeAdmin);
+        overlay.addEventListener('click', e => { if (e.target === overlay) closeAdmin(); });
+
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+                e.preventDefault();
+                overlay.classList.contains('active') ? closeAdmin() : openAdmin();
+            }
+            if (e.key === 'Escape' && overlay.classList.contains('active')) closeAdmin();
+        });
+
+        // Tab switching
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        });
+
+        function switchTab(name) {
+            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            document.querySelector(`.admin-tab[data-tab="${name}"]`)?.classList.add('active');
+        }
+
+        // ─── Markdown Live Preview ───
+        const formContent = document.getElementById('formContent');
+        const mdPreview = document.getElementById('mdPreview');
+
+        function updatePreview(textarea, preview) {
+            preview.innerHTML = parseMd(textarea.value);
+        }
+
+        formContent.addEventListener('input', () => updatePreview(formContent, mdPreview));
+
+        const editContent = document.getElementById('editContent');
+        const editMdPreview = document.getElementById('editMdPreview');
+        editContent.addEventListener('input', () => updatePreview(editContent, editMdPreview));
+
+        // ─── Markdown Toolbar ───
+        function insertMd(ta, before, after = '', placeholder = '') {
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            const selected = ta.value.substring(start, end) || placeholder;
+            const newText = before + selected + after;
+            ta.value = ta.value.substring(0, start) + newText + ta.value.substring(end);
+            const newPos = start + before.length + selected.length;
+            ta.setSelectionRange(newPos, newPos);
+            ta.focus();
+            // Trigger preview update
+            ta.dispatchEvent(new Event('input'));
+        }
+
+        document.querySelectorAll('.md-toolbar-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                const ta = action === 'write' ? formContent : editContent;
+                switch (action) {
+                    case 'bold':      insertMd(ta, '**', '**', '粗体文字'); break;
+                    case 'italic':     insertMd(ta, '*', '*', '斜体文字'); break;
+                    case 'h2':         insertMd(ta, '\n## ', '\n', '二级标题'); break;
+                    case 'h3':         insertMd(ta, '\n### ', '\n', '三级标题'); break;
+                    case 'quote':      insertMd(ta, '\n> ', '\n', '引用内容'); break;
+                    case 'code':       insertMd(ta, '`', '`', '代码'); break;
+                    case 'codeblock':  insertMd(ta, '\n```\n', '\n```\n', '代码块'); break;
+                    case 'ul':         insertMd(ta, '\n- ', '\n', '列表项'); break;
+                    case 'ol':         insertMd(ta, '\n1. ', '\n', '列表项'); break;
+                    case 'link':       insertMd(ta, '[', '](https://)', '链接文字'); break;
+                    case 'hr':         insertMd(ta, '\n---\n', ''); break;
+                }
+            });
+        });
+
+        // ─── Render Admin List ───
+        function renderAdminList() {
+            const articles = loadArticles();
+            const ids = Object.keys(articles).map(Number).sort((a, b) => b - a);
+            const container = document.getElementById('adminArticleList');
+
+            if (ids.length === 0) {
+                container.innerHTML = '<div style="padding:3rem;text-align:center;color:var(--text-muted);font-size:0.88rem;">暂无文章，点击「写文章」开始创作</div>';
+                return;
+            }
+
+            container.innerHTML = ids.map(id => {
+                const a = articles[id];
+                return `<div class="admin-article-row">
+                    <div class="admin-article-info">
+                        <div class="admin-article-title">${escHtml(a.title)}</div>
+                        <div class="admin-article-meta">${escHtml(a.date)} · ${a.tags.join(', ')}</div>
+                    </div>
+                    <div class="admin-article-actions">
+                        <button class="btn btn-secondary" onclick="editArticle(${id})">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteArticle(${id})">删除</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ─── Write Article ───
+        document.getElementById('articleForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const editId = document.getElementById('editId').value;
+            const title = document.getElementById('formTitle').value.trim();
+            const date = document.getElementById('formDate').value;
+            const tags = document.getElementById('formTags').value.split(',').map(t => t.trim()).filter(Boolean);
+            const excerpt = document.getElementById('formExcerpt').value.trim();
+            const content = formContent.value;
+
+            if (!title || !date || !content.trim()) {
+                showToast('请填写标题、日期和正文', 'error');
+                return;
+            }
+
+            const articles = loadArticles();
+            const id = editId ? parseInt(editId) : Date.now();
+            articles[id] = { id, title, date, tags: tags.length ? tags : ['随笔'], excerpt, content };
+            saveArticles(articles);
+
+            showToast(editId ? '文章已更新！' : '文章发布成功！');
+            document.getElementById('articleForm').reset();
+            mdPreview.innerHTML = '';
+            document.getElementById('editId').value = '';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            switchTab('manage');
+            renderAdminList();
+            renderArticleList();
+        });
+
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            document.getElementById('articleForm').reset();
+            mdPreview.innerHTML = '';
+            document.getElementById('editId').value = '';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        });
+
+        // ─── Edit Article ───
+        function editArticle(id) {
+            const articles = loadArticles();
+            const a = articles[id];
+            if (!a) return;
+
+            document.getElementById('editTitle').value = a.title;
+            document.getElementById('editDate').value = a.date;
+            document.getElementById('editTags').value = a.tags.join(', ');
+            document.getElementById('editExcerpt').value = a.excerpt || '';
+            editContent.value = a.content;
+            document.getElementById('editArticleId').value = id;
+            editMdPreview.innerHTML = parseMd(a.content);
+            switchTab('edit');
+        }
+
+        document.getElementById('editForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('editArticleId').value);
+            const articles = loadArticles();
+
+            articles[id] = {
+                ...articles[id],
+                title: document.getElementById('editTitle').value.trim(),
+                date: document.getElementById('editDate').value,
+                tags: document.getElementById('editTags').value.split(',').map(t => t.trim()).filter(Boolean),
+                excerpt: document.getElementById('editExcerpt').value.trim(),
+                content: editContent.value
+            };
+
+            saveArticles(articles);
+            showToast('文章已保存！');
+            switchTab('manage');
+            renderAdminList();
+            renderArticleList();
+        });
+
+        document.getElementById('cancelEdit2Btn').addEventListener('click', () => switchTab('manage'));
+
+        // ─── Delete Article ───
+        function deleteArticle(id) {
+            if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) return;
+            const articles = loadArticles();
+            delete articles[id];
+            saveArticles(articles);
+            showToast('文章已删除', 'error');
+            renderAdminList();
+            renderArticleList();
+        }
+
+        // ─── Nav & Back ───
+        document.querySelectorAll('nav a[data-view]').forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                document.querySelectorAll('nav a[data-view]').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                if (link.dataset.view === 'list') showList();
+            });
+        });
+
+        document.getElementById('backBtn').addEventListener('click', e => { e.preventDefault(); showList(); });
+
+        // ─── Utility ───
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        // ─── Init ───
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+        renderArticleList();
+    </script>
+</body>
+</html>
