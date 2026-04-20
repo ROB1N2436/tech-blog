@@ -361,12 +361,15 @@
         .admin-panel {
             width: 100%;
             max-width: 1100px;
+            max-height: calc(100vh - 4rem);
             margin: 2rem auto;
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 16px;
             overflow: hidden;
             animation: adminSlideIn 0.3s ease;
+            display: flex;
+            flex-direction: column;
             max-height: calc(100vh - 4rem);
             display: flex;
             flex-direction: column;
@@ -494,8 +497,8 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             overflow: hidden;
-            min-height: 420px;
-            max-height: 55vh;
+            height: 420px;
+            max-height: 50vh;
             position: relative;
         }
 
@@ -720,7 +723,7 @@
             .admin-panel { margin: 1rem; border-radius: 12px; }
             .admin-header, .admin-body { padding: 1.2rem 1.5rem; }
             .form-row { grid-template-columns: 1fr; }
-            .md-editor { grid-template-columns: 1fr; min-height: 300px; }
+            .md-editor { grid-template-columns: 1fr; height: 300px; }
             .md-preview { display: none; }
             .footer-content { flex-direction: column; text-align: center; }
         }
@@ -1309,24 +1312,22 @@
 
         function handlePaste(e, textarea) {
             const clipboardData = e.clipboardData || window.clipboardData;
-            const items = clipboardData.items;
             
-            // Check for HTML content (from Feishu, Word, etc.)
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].type === 'text/html') {
-                    e.preventDefault();
-                    items[i].getAsString(html => {
-                        const md = htmlToMd(html);
-                        const start = textarea.selectionStart;
-                        const end = textarea.selectionEnd;
-                        textarea.value = textarea.value.substring(0, start) + md + textarea.value.substring(end);
-                        textarea.setSelectionRange(start + md.length, start + md.length);
-                        textarea.dispatchEvent(new Event('input'));
-                        showToast('已转换为 Markdown 格式');
-                    });
-                    return;
-                }
+            // Try to get HTML content first (from Feishu, Word, etc.)
+            let html = clipboardData.getData('text/html');
+            
+            if (html) {
+                e.preventDefault();
+                const md = htmlToMd(html);
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                textarea.value = textarea.value.substring(0, start) + md + textarea.value.substring(end);
+                textarea.setSelectionRange(start + md.length, start + md.length);
+                textarea.dispatchEvent(new Event('input'));
+                textarea.focus();
+                showToast('已转换为 Markdown 格式');
             }
+            // If no HTML, let the browser handle plain text paste normally
         }
 
         formContent.addEventListener('paste', e => handlePaste(e, formContent));
